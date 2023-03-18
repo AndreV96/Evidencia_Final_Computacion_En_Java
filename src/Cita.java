@@ -5,10 +5,10 @@ public class Cita {
     private UUID id;
     private UUID doctorId;
     private UUID pacienteId;
-    private Date fecha;
+    private String fecha;
     private String motivo;
 
-    public Cita(UUID doctorId, UUID pacienteId, Date fecha, String motivo) {
+    public Cita(UUID doctorId, UUID pacienteId, String fecha, String motivo) {
         this.id = UUID.randomUUID();
         this.doctorId = doctorId;
         this.pacienteId = pacienteId;
@@ -16,7 +16,7 @@ public class Cita {
         this.motivo = motivo;
     }
 
-    public Cita(UUID id, UUID doctorId, UUID pacienteId, Date fecha, String motivo) {
+    public Cita(UUID id, UUID doctorId, UUID pacienteId, String fecha, String motivo) {
         this.id = id;
         this.doctorId = doctorId;
         this.pacienteId = pacienteId;
@@ -36,7 +36,7 @@ public class Cita {
         return pacienteId;
     }
 
-    public Date getFecha() {
+    public String getFecha() {
         return  fecha;
     }
 

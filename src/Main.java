@@ -2,9 +2,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.UUID;
@@ -15,23 +12,13 @@ public class Main {
     private HashMap<UUID, Paciente> pacientes;
     private HashMap<UUID, Cita> citas;
 
+    Scanner scanner = new Scanner(System.in);
+
     public Main() {
         administradores = new HashMap<>();
         doctores = new HashMap<>();
         pacientes = new HashMap<>();
         citas = new HashMap<>();
-    }
-
-    public Main(HashMap<UUID, Administrador> administradores, HashMap<UUID, Doctor> doctores,
-                HashMap<UUID, Paciente> pacientes, HashMap<UUID, Cita> citas) {
-        this.administradores = administradores;
-        this.doctores = doctores;
-        this.pacientes = pacientes;
-        this.citas = citas;
-    }
-
-    public void addAdministrador(Administrador administrador) {
-        administradores.put(administrador.getId(), administrador);
     }
 
     public void addDoctor(Doctor doctor) {
@@ -44,6 +31,36 @@ public class Main {
 
     public void addCita(Cita cita) {
         citas.put(cita.getId(), cita);
+    }
+
+    public UUID getDoctorIdFromName() {
+        while (true) {
+            System.out.println("Ingrese el nombre del doctor:");
+            String nombre = scanner.nextLine();
+
+            for (Doctor doctor : doctores.values()) {
+                if (doctor.getNombre().equals(nombre)) {
+                    return doctor.getId();
+                }
+            }
+
+            System.out.println("No se encontró ningún doctor con ese nombre, por favor intente de nuevo.");
+        }
+    }
+
+    public UUID getPacienteIdFromName() {
+        while (true) {
+            System.out.println("Ingrese el nombre del paciente:");
+            String nombre = scanner.nextLine();
+
+            for (Paciente paciente : pacientes.values()) {
+                if (paciente.getNombre().equals(nombre)) {
+                    return paciente.getId();
+                }
+            }
+
+            System.out.println("No se encontró ningún doctor con ese nombre, por favor intente de nuevo.");
+        }
     }
 
     public void loadDoctores(String file) {
@@ -124,14 +141,14 @@ public class Main {
                     UUID id = UUID.fromString(values[0]);
                     UUID doctorId = UUID.fromString(values[1]);
                     UUID pacienteId = UUID.fromString(values[2]);
-                    Date fecha = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(values[3]);
+                    String fecha = values[3];
                     String motivo = values[4];
                     Cita cita = new Cita(id, doctorId, pacienteId, fecha, motivo);
                     citas.put(id, cita);
                 }
             }
             reader.close();
-        } catch (IOException | ParseException e) {
+        } catch (IOException e) {
             System.out.println("Ha ocurrido un error al cargar la lista de citas del archivo seleccionado:" + e.getMessage());
         }
     }
@@ -141,7 +158,7 @@ public class Main {
             FileWriter writer = new FileWriter(file);
             for (UUID id : citas.keySet()) {
                 Cita cita = citas.get(id);
-                String fecha = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(cita.getFecha());
+                String fecha = cita.getFecha();
                 writer.write(id.toString() + "," + cita.getDoctorId().toString() + "," + cita.getPacienteId().toString() + "," + fecha + "," + cita.getMotivo() + "\n");
             }
             writer.close();
@@ -171,90 +188,104 @@ public class Main {
         }
     }
 
-    public void saveAdministradores(String file) {
-        try {
-            FileWriter writer = new FileWriter(file);
-            for (UUID id : administradores.keySet()) {
-                Administrador administrador = administradores.get(id);
-                writer.write(id.toString() + "," + administrador.getUsuario() + "," + administrador.getContraseña() + "\n");
+    public void userCreateDoctor() {
+        System.out.print("Escribe el nombre del doctor: ");
+        String nombre = scanner.nextLine();
+        System.out.print("Escribe la especialidad del doctor: ");
+        String especialidad = scanner.nextLine();
+        Doctor doctor = new Doctor(nombre, especialidad);
+        addDoctor(doctor);
+        System.out.println("Nuevo doctor agregado.");
+    }
+
+    public void userCreatePaciente() {
+        System.out.print("Escribe el nombre del paciente: ");
+        String nombre = scanner.nextLine();
+        Paciente paciente = new Paciente(nombre);
+        addPaciente(paciente);
+        System.out.println("Nuevo paciente agregado.");
+    }
+
+    public void userCreateCita() {
+        UUID doctorId = getDoctorIdFromName();
+        UUID pacienteId = getPacienteIdFromName();
+
+        System.out.print("Escribe la fecha de la cita: ");
+        String fecha = scanner.nextLine();
+        System.out.print("Escribe el motivo de la cita: ");
+        String motivo = scanner.nextLine();
+        Cita cita = new Cita(doctorId, pacienteId,fecha, motivo);
+        addCita(cita);
+        System.out.println("Nueva cita creada.");
+    }
+
+    public void run() {
+    boolean access = false;
+    boolean running = true;
+
+    String doctoresFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/doctores.csv";
+    String pacientesFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/pacientes.csv";
+    String citasFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/citas.csv";
+    String administradoresFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/administradores.csv";
+
+    loadDoctores(doctoresFile);
+    loadPacientes(pacientesFile);
+    loadCitas(citasFile);
+    loadAdministradores(administradoresFile);
+
+    while (access != true) {
+        System.out.println("Ingrese su nombre de usuario:");
+        String username = scanner.nextLine();
+        System.out.println("Ingrese su contraseña:");
+        String password = scanner.nextLine();
+
+        for (Administrador admin : administradores.values()) {
+            if (admin.getUsuario().equals(username) && admin.getContraseña().equals(password)) {
+                System.out.println("¡Inicio de sesión exitoso!");
+                access = true;
+            } else {
+                System.out.println("Usuario o contraseña incorrecta, intente de nuevo");
             }
-            writer.close();
-        } catch (IOException e) {
-            System.out.println("Ha ocurrido un error al guardar la lista de administradores en el archivo seleccionado: " + e.getMessage());
         }
     }
 
+    System.out.println("Bienvenido al menú del hospital");
+    while (running) {
+        System.out.println("Por favor escribe el número de opción a ejecutar: ");
+        System.out.println("1. Agregar un nuevo doctor");
+        System.out.println("2. Agregar un nuevo paciente");
+        System.out.println("3. Crear una nueva cita");
+        System.out.println("4. Salir del programa");
 
+        String choice = scanner.nextLine();
 
-
-        public void run() {
-        Scanner scanner = new Scanner(System.in);
-        boolean access = false;
-        boolean running = true;
-
-        String doctoresFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/doctores.csv";
-        String pacientesFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/pacientes.csv";
-        String citasFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/citas.csv";
-        String administradoresFile = "/Users/andrevega/IdeaProjects/Evidencia_Computacion_En_Java/DB/administradores.csv";
-
-        loadDoctores(doctoresFile);
-        loadPacientes(pacientesFile);
-        loadCitas(citasFile);
-        loadAdministradores(administradoresFile);
-
-        while (access != true) {
-            System.out.println("Ingrese su nombre de usuario:");
-            String username = scanner.nextLine();
-            System.out.println("Ingrese su contraseña:");
-            String password = scanner.nextLine();
-
-            for (Administrador admin : administradores.values()) {
-                if (admin.getUsuario().equals(username) && admin.getContraseña().equals(password)) {
-                    System.out.println("¡Inicio de sesión exitoso!");
-                    access = true;
-                } else {
-                    System.out.println("Usuario o contraseña incorrecta, intente de nuevo");
-                }
-            }
-        }
-
-        System.out.println("Bienvenido al menú del hospital");
-        while (running) {
-            System.out.println("Por favor escribe el número de opción a ejecutar: ");
-            System.out.println("1. Agregar un nuevo doctor");
-            System.out.println("2. Agregar un nuevo paciente");
-            System.out.println("3. Crear una nueva cita");
-            System.out.println("4. Salir del programa");
-
-            String choice = scanner.nextLine();
-
-            switch (choice) {
-                case "1":
-                    System.out.println("New doctor added.");
-                    System.out.println("Presione enter para continuar");
-                    scanner.nextLine();
-                    break;
-                case "2":
-                    System.out.println("New patient added.");
-                    System.out.println("Presione enter para continuar");
-                    scanner.nextLine();
-                    break;
-                case "3":
-                    System.out.println("Appointment created.");
-                    System.out.println("Presione enter para continuar");
-                    scanner.nextLine();
-                    break;
-                case "4":
-                    running = false;
-                    saveDoctores(doctoresFile);
-                    savePacientes(pacientesFile);
-                    saveCitas(citasFile);
-                    System.out.println("Cambios guardados");
-                    break;
-                default:
-                    System.out.println("Opción inválida, presione enter para intentar de nuevo");
-                    scanner.nextLine();
-                    break;
+        switch (choice) {
+            case "1":
+                userCreateDoctor();
+                System.out.println("Presione enter para continuar");
+                scanner.nextLine();
+                break;
+            case "2":
+                userCreatePaciente();
+                System.out.println("Presione enter para continuar");
+                scanner.nextLine();
+                break;
+            case "3":
+                userCreateCita();
+                System.out.println("Presione enter para continuar");
+                scanner.nextLine();
+                break;
+            case "4":
+                running = false;
+                saveDoctores(doctoresFile);
+                savePacientes(pacientesFile);
+                saveCitas(citasFile);
+                System.out.println("Cambios guardados");
+                break;
+            default:
+                System.out.println("Opción inválida, presione enter para intentar de nuevo");
+                scanner.nextLine();
+                break;
             }
         }
     }
