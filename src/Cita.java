@@ -16,6 +16,14 @@ public class Cita {
         this.motivo = motivo;
     }
 
+    public Cita(UUID id, UUID doctorId, UUID pacienteId, Date fecha, String motivo) {
+        this.id = id;
+        this.doctorId = doctorId;
+        this.pacienteId = pacienteId;
+        this.fecha = fecha;
+        this.motivo = motivo;
+    }
+
     public UUID getId() {
         return id;
     }

@@ -10,6 +10,12 @@ public class Doctor {
         this.especialidad = especialidad;
     }
 
+    public Doctor(UUID id, String nombre, String especialidad){
+        this.id = id;
+        this.nombre = nombre;
+        this.especialidad = especialidad;
+    }
+
     public UUID getId() {
         return id;
     }
